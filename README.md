@@ -11,7 +11,7 @@ Example:
 ```
 $("selector").imageready(function($notLoadedImages) {
 
-  if ($notLoadedImages.length > 0) {
+  if ($notLoadedImages && $notLoadedImages.length > 0) {
     console.log("Some images haven't loaded");
   } else {
     console.log("All images and background images have loaded");
