@@ -1,5 +1,5 @@
 # jquery.imageready
-A jquery plugin to check if images have loaded.
+A jquery plugin to check if images have loaded. Checks normal ``img`` tags and css ``background-image`` values, waits for images to load and triggers callback. Will timeout and trigger callback after 10000 milliseconds (or the specified amount if allowed). Returns image tags that weren't loaded as a jquery object.
 
 Usage:
 
