@@ -31,7 +31,6 @@
 		$images.each(function() {
 			var $this = $(this);
 			if (!$this.attr("src") || this.complete || this.readyState === 4 || $this.height > 0 ) {
-				$this.attr("loaded", true);
 				$images.loaded++;
 				return;
 			}
@@ -69,7 +68,6 @@
 		function complete(event) {
 			clearTimeout(timeoutHandle);
 			if (event && event.target) {
-				$(event.target).attr("loaded", true);
 				$images.loaded++;
 			}
 			if ($images.length <= $images.loaded) {
