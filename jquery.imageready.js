@@ -51,17 +51,18 @@
 
 		//callback timeout event
 		function check() {
-			console.error("image load timeout after", options.timeoutDuration / 1000, "seconds");
 			clearTimeout(timeoutHandle);
+			var notLoaded = [];
 			$images.each(function() {
 				var $this = $(this);
 				if (!$this.attr("src") || this.complete || this.readyState === 4 || $this.height > 0 ) {
 					console.error("failed to hear load of image", $this.attr("src"));	
 					return;
+				} else {
+					notLoaded.push(this);
 				}
-				console.error("could not load image", $this.attr("src"));
 			});
-			return callback();
+			return callback($(notLoaded));
 		}
 
 		//callback load event
@@ -102,7 +103,7 @@
 		        if( document.defaultView.getComputedStyle(el, null).getPropertyValue(name) !== 'none' ) {
 		        	rtn.push(el);
 		        }
-		        
+
 		    }
 		}
 		return rtn;
