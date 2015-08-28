@@ -1,4 +1,4 @@
-//https://github.com/cgkineo/jquery.imageready 2015-08-18
+//https://github.com/cgkineo/jquery.imageready 2015-08-28
 
 ;(function( $ ) {
 
