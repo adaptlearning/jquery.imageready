@@ -1,98 +1,20 @@
-//https://github.com/cgkineo/jquery.imageready 2015-08-28
+//https://github.com/cgkineo/jquery.imageready 2017-04-20
 
 ;(function( $ ) {
 
 	if ($.fn.imageready) return;
-	
-	var stripCSSURL = /url\(([^)]*)\)/g;
 
-	$.fn.imageready = function(callback, options) {
-		//setup options
-		options = options || {};
-		if (options.allowTimeout === undefined) {
-			options.allowTimeout = $.fn.imageready.allowTimeout;
-			options.timeoutDuration = $.fn.imageready.timeoutDuration;
-		}
+	function isImageLoaded($img) {
 
-		//get all child images
-		var $images = this.find("img").add( this.filter("img") );
-		if ($images.length === 0) return callback();
-		$images.loaded = 0;
+		var img = $img[0];
+		var hasNoSrc = !$img.attr("src");
+		var isMarkedComplete = img.complete;
+		var hasCorrectReadyState = img.readyState === 4;
+		var hasValidHeight = (img.naturalHeight !== undefined) ? (img.naturalHeight > 0) : ($img.height() > 0);
 
-		//get all background images
-		this.each(function() {
-			var $backgroundImageElements = $(getElementsByCSSAttributeName.call(this, "background-image"));
-			$backgroundImageElements.each(function() {
-				var $backgroundImage = $(new Image());
-				var backgroundImageValue = $(this).css("background-image");
-				var matches = stripCSSURL.exec(backgroundImageValue);
-				if (matches === null) return;
-				var url = matches[1];
-				$backgroundImage.attr("src", url);
-				$images.add($backgroundImage);
-			});
-		});
-
-		//attach load event listeners
-		$images.each(function() {
-			var $this = $(this);
-			if (!$this.attr("src") || this.complete || this.readyState === 4 || $this.height() > 0 ) {
-				$images.loaded++;
-				return;
-			}
-			$this.one("load", complete);
-			
-			// hack for onload event not firing for cached images in IE9 http://garage.socialisten.at/2013/06/how-to-fix-the-ie9-image-onload-bug/
-			if(document.documentMode && document.documentMode === 9) {
-				$this.attr("src", $this.attr("src"));
-			}
-		});
-
-		//check if all images have been loaded already
-		if ($images.length <= $images.loaded) {
-			return complete();
-		}
-
-		//setup timeout event
-		var timeoutHandle;
-		if (options.allowTimeout) {
-			timeoutHandle = setTimeout(check, options.timeoutDuration)
-		}
-
-		//callback timeout event
-		function check() {
-			clearTimeout(timeoutHandle);
-			var notLoaded = [];
-			$images.each(function() {
-				var $this = $(this);
-				if (!$this.attr("src") || this.complete || this.readyState === 4 || $this.height() > 0 ) {
-					console.error("failed to hear load of image", $this.attr("src"));	
-					return;
-				} else {
-					notLoaded.push(this);
-				}
-			});
-			return callback($(notLoaded));
-		}
-
-		//callback load event
-		function complete(event) {
-			clearTimeout(timeoutHandle);
-			if (event && event.target) {
-				$images.loaded++;
-			}
-			if ($images.length <= $images.loaded) {
-				return callback();
-			}
-			if (options.allowTimeout) {
-				timeoutHandle = setTimeout(check, options.timeoutDuration);
-			}
-		}
+		return hasNoSrc || isMarkedComplete || hasCorrectReadyState || hasValidHeight;
 
 	}
-	$.fn.imageready.timeoutDuration = 10000;
-	$.fn.imageready.allowTimeout = true;
-
 
 	function getElementsByCSSAttributeName(name) {
 		if (name === undefined) throw "Must specify a css attribute name";
@@ -105,15 +27,18 @@
 		    if (el.currentStyle) { //ie
 
 		    	var scriptName = changeCSSAttributeNameFormat(name);
-		        if( el.currentStyle[scriptName] !== 'none' ) {
-		        	rtn.push(el);		       		
-		        }
+
+		    	var hasNoValue = (el.currentStyle[scriptName] == 'none');
+		        if (hasNoValue) return;
+		        
+		        rtn.push(el);
 
 		    } else if (window.getComputedStyle) { //other
 		    	
-		        if( document.defaultView.getComputedStyle(el, null).getPropertyValue(name) !== 'none' ) {
-		        	rtn.push(el);
-		        }
+		    	var hasNoValue = (document.defaultView.getComputedStyle(el, null).getPropertyValue(name) == 'none');
+		        if (hasNoValue) return;
+		        	
+		        rtn.push(el);
 
 		    }
 		}
@@ -132,5 +57,122 @@
 	    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
+	function getAllImages($set) {
+
+		//get all child images
+		var $images = $set.find("img").add( $set.filter("img") );
+		$images.loaded = 0;
+
+		//get all background images
+		$set.each(function() {
+
+			var $backgroundImageElements = $(getElementsByCSSAttributeName.call(this, "background-image"));
+			$backgroundImageElements.each(function() {
+
+				var $image = $(new Image());
+				var backgroundImageValue = $(this).css("background-image");
+
+				// stripCSSURL
+				var matches = /url\(([^)]*)\)/g.exec(backgroundImageValue);
+				if (matches === null) return;
+				
+				// stripCSSQuotes
+				var url = matches[1].replace(/[\"\']/g, "");
+				$image.attr("src", url);
+				$images = $images.add($image);
+
+			});
+
+		});
+
+		//return undefined if no images found
+		if ($images.length === 0) return;
+		return $images;
+
+	}
+
+	$.fn.imageready = function(callback, options) {
+		//setup options
+		options = options || {};
+		if (options.allowTimeout === undefined) {
+			options.allowTimeout = $.fn.imageready.allowTimeout;
+			options.timeoutDuration = $.fn.imageready.timeoutDuration;
+		}
+
+		var $images = getAllImages(this);
+		if (!$images) return callback();
+
+		//callback timeout event
+		var timeoutHandle;
+		function check() {
+
+			clearTimeout(timeoutHandle);
+			var notLoadedImg = [];
+
+			$images.each(function() {
+
+				if (this._isImageReadyComplete) return;
+
+				notLoadedImg.push(this);
+
+				var $this = $(this);
+				console.error("image not loaded in time", $this.attr("src"));
+
+			});
+
+			return callback($(notLoadedImg));
+		}
+
+		//callback load event
+		function complete(event) {
+
+			clearTimeout(timeoutHandle);
+
+			var isAnEventCallback = (event && event.target);
+			if (isAnEventCallback) {
+				$images.loaded++;
+				event.currentTarget._isImageReadyComplete = true;
+			}
+
+			var haveAllImagesLoaded = ($images.length <= $images.loaded);
+			if (haveAllImagesLoaded) return callback();
+
+			if (!options.allowTimeout) return;
+
+			//set a new timeout as not all images have loaded
+			timeoutHandle = setTimeout(check, options.timeoutDuration);
+
+		}
+
+		//attach load event listeners
+		$images.each(function() {
+			var $this = $(this);
+
+			if (isImageLoaded($this)) return $images.loaded++;
+
+			$this.one("load", complete);
+			$this.one("error", complete);
+			
+			// hack for onload event not firing for cached images in IE9 http://garage.socialisten.at/2013/06/how-to-fix-the-ie9-image-onload-bug/
+			var isIE9 = (document.documentMode && document.documentMode === 9);
+			if (!isIE9) return;
+			
+			//in IE9 reset the src attribute
+			$this.attr("src", $this.attr("src"));
+
+		});
+
+		//check if all images have been loaded already
+		if ($images.length <= $images.loaded) return complete();
+
+		//setup timeout event
+		if (!options.allowTimeout) return;
+		
+		//set a timeout to callback on slow / missing image load
+		timeoutHandle = setTimeout(check, options.timeoutDuration)
+
+	}
+	$.fn.imageready.timeoutDuration = 1;
+	$.fn.imageready.allowTimeout = false;
 
 }) ( jQuery );
