@@ -1,4 +1,4 @@
-//https://github.com/cgkineo/jquery.imageready 2017-04-20
+//https://github.com/cgkineo/jquery.imageready 2017-04-21
 
 ;(function( $ ) {
 
@@ -23,24 +23,22 @@
 
 		var rtn = [];
 		for (var i = 0, len = tags.length; i < len; i++) {
-		    el = tags[i];
-		    if (el.currentStyle) { //ie
+			el = tags[i];
+			if (el.currentStyle) { //ie
 
-		    	var scriptName = changeCSSAttributeNameFormat(name);
+				var scriptName = changeCSSAttributeNameFormat(name);
 
-		    	var hasNoValue = (el.currentStyle[scriptName] == 'none');
-		        if (hasNoValue) return;
-		        
-		        rtn.push(el);
+				var hasNoValue = (el.currentStyle[scriptName] == 'none');
+				if (hasNoValue) continue;
 
-		    } else if (window.getComputedStyle) { //other
-		    	
-		    	var hasNoValue = (document.defaultView.getComputedStyle(el, null).getPropertyValue(name) == 'none');
-		        if (hasNoValue) return;
-		        	
-		        rtn.push(el);
-
-		    }
+			} else if (window.getComputedStyle) { //other
+				
+				var hasNoValue = (document.defaultView.getComputedStyle(el, null).getPropertyValue(name) == 'none');
+				if (hasNoValue) continue;
+				
+			}
+			
+			rtn.push(el);
 		}
 		return rtn;
 	}
@@ -54,7 +52,7 @@
 	}
 
 	function toTitleCase(str){
-	    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+		return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
 	function getAllImages($set) {
