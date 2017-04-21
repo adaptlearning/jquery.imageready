@@ -22,24 +22,37 @@
         var tags = this.getElementsByTagName('*'), el;
 
         var rtn = [];
-        for (var i = 0, len = tags.length; i < len; i++) {
-            el = tags[i];
-            if (el.currentStyle) { //ie
 
-                var scriptName = changeCSSAttributeNameFormat(name);
+        if (el.currentStyle) { //ie
+
+            var scriptName = changeCSSAttributeNameFormat(name);
+
+            for (var i = 0, len = tags.length; i < len; i++) {
+
+                el = tags[i];  
 
                 var hasNoValue = (el.currentStyle[scriptName] == 'none');
                 if (hasNoValue) continue;
 
-            } else if (window.getComputedStyle) { //other
-                
+                rtn.push(el);
+
+            }
+
+        } else if (window.getComputedStyle) { //other
+
+            for (var i = 0, len = tags.length; i < len; i++) {
+
+                el = tags[i];  
+
                 var hasNoValue = (document.defaultView.getComputedStyle(el, null).getPropertyValue(name) == 'none');
                 if (hasNoValue) continue;
-                
+
+                rtn.push(el);
+
             }
-            
-            rtn.push(el);
+
         }
+
         return rtn;
     }
 
