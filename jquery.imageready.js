@@ -10,7 +10,13 @@
         var hasNoSrc = !$img.attr("src");
         var isMarkedComplete = img.complete;
         var hasCorrectReadyState = img.readyState === 4;
-        var hasValidHeight = (img.naturalHeight !== undefined) ? (img.naturalHeight > 0) : ($img.height() > 0);
+
+        //has height reported by jquery
+        var has$Height = ($img.height() > 0);
+        //has height reported by image definition (ie9+)
+        var hasNaturalHeight = (img.naturalHeight === undefined) ? true : (img.naturalHeight > 0);
+
+        var hasValidHeight = has$Height && hasNaturalHeight;
 
         return hasNoSrc || isMarkedComplete || hasCorrectReadyState || hasValidHeight;
 
@@ -23,7 +29,9 @@
 
         var rtn = [];
 
-        if (el.currentStyle) { //ie
+        var body = $("body")[0];
+
+        if (body.currentStyle) { //ie
 
             var scriptName = changeCSSAttributeNameFormat(name);
 
