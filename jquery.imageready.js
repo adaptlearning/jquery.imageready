@@ -1,4 +1,4 @@
-//https://github.com/adaptlearning/jquery.imageready 2017-05-09
+//https://github.com/adaptlearning/jquery.imageready 2017-07-11
 
 ;(function( $ ) {
 
