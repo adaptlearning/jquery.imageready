@@ -1,4 +1,4 @@
-//https://github.com/adaptlearning/jquery.imageready 2017-07-11
+//https://github.com/adaptlearning/jquery.imageready 2017-12-13
 
 ;(function( $ ) {
 
@@ -26,7 +26,9 @@
         if (name === undefined) throw "Must specify a css attribute name";
 
         var tags = this.getElementsByTagName('*'), el;
-
+        tags = Array.prototype.slice.call(tags, 0); // convert to array
+        tags.unshift(this); // add parent element to front of list
+        
         var rtn = [];
 
         var body = $("body")[0];
