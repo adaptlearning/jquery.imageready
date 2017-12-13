@@ -26,7 +26,9 @@
         if (name === undefined) throw "Must specify a css attribute name";
 
         var tags = this.getElementsByTagName('*'), el;
-
+        tags = Array.prototype.slice.call(tags, 0); // convert to array
+        tags.unshift(this); // add parent element to front of list
+        
         var rtn = [];
 
         var body = $("body")[0];
